@@ -19,7 +19,7 @@ SESSION_PREFIX="${POKER44_SESSION_PREFIX:-sn126b_m}"
 AXON_BASE_PORT="${POKER44_AXON_BASE_PORT:-12080}"
 VENV_BIN="${POKER44_VENV_BIN:-$REPO/.venv/bin}"
 
-MANIFEST_REPO_URL="${POKER44_MODEL_REPO_URL:-https://github.com/tomkaba/poker44-miner-gen10heur4}"
+MANIFEST_REPO_URL="${POKER44_MODEL_REPO_URL:-https://github.com/tomkaba/poker44-miner-gen10heur14}"
 MANIFEST_REPO_COMMIT="${POKER44_MODEL_REPO_COMMIT:-$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)}"
 MANIFEST_IMPL_FILES="models/benchmark_heuristic_profile.json,neurons/miner.py,poker44/base/miner.py,poker44/base/neuron.py,poker44/miner_heuristics.py,poker44/utils/config.py,poker44/utils/misc.py,poker44/utils/model_manifest.py,poker44/validator/synapse.py"
 
@@ -102,14 +102,14 @@ for raw_id in $(echo "$IDS_STRING" | tr ',' '\n'); do
     cd $REPO
     source $VENV_BIN/activate
     export PYTHONPATH=$REPO:\${PYTHONPATH:-}
-    export POKER44_SINGLE_HAND_MODEL_ALIAS=gen10heur4
-    export POKER44_CHUNK_SCORER=gen10heur4
+    export POKER44_SINGLE_HAND_MODEL_ALIAS=gen10heur14
+    export POKER44_CHUNK_SCORER=gen10heur14
     export POKER44_MODEL_REPO_URL=$MANIFEST_REPO_URL
     export POKER44_MODEL_REPO_COMMIT=$MANIFEST_REPO_COMMIT
     export POKER44_MODEL_IMPLEMENTATION_FILES=$MANIFEST_IMPL_FILES
     export POKER44_MODEL_IMPLEMENTATION_SHA256=$MANIFEST_IMPL_SHA256
     echo '[runtime] HOTKEY_ID=$I'
-    echo '[runtime] CHUNK_SCORER=gen10heur4'
+    echo '[runtime] CHUNK_SCORER=gen10heur14'
     echo '[runtime] MANIFEST_SHA256=$MANIFEST_IMPL_SHA256'
     $VENV_BIN/python -m neurons.miner \
       --netuid 126 \
