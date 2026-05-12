@@ -20,7 +20,6 @@ AXON_BASE_PORT="${POKER44_AXON_BASE_PORT:-12080}"
 VENV_BIN="${POKER44_VENV_BIN:-$REPO/.venv/bin}"
 
 MANIFEST_REPO_URL="${POKER44_MODEL_REPO_URL:-https://github.com/tomkaba/poker44-miner-gen10heur14}"
-MANIFEST_REPO_COMMIT="${POKER44_MODEL_REPO_COMMIT:-$(git -C "$REPO" rev-parse HEAD 2>/dev/null || true)}"
 
 if [[ -f "$ENV_FILE" ]]; then
   set -a
@@ -38,8 +37,7 @@ if [[ ! -x "$VENV_BIN/python" ]]; then
 fi
 
 echo "[manifest] POKER44_MODEL_REPO_URL=$MANIFEST_REPO_URL"
-echo "[manifest] POKER44_MODEL_REPO_COMMIT=$MANIFEST_REPO_COMMIT"
-echo "[manifest] implementation_files / implementation_sha256 computed inside neurons/miner.py"
+echo "[manifest] repo_commit / implementation_files / implementation_sha256 computed inside neurons/miner.py"
 
 for raw_id in $(echo "$IDS_STRING" | tr ',' '\n'); do
   I="$(echo "$raw_id" | tr -d ' ')"
@@ -70,7 +68,6 @@ for raw_id in $(echo "$IDS_STRING" | tr ',' '\n'); do
     export POKER44_SINGLE_HAND_MODEL_ALIAS=gen10heur14
     export POKER44_CHUNK_SCORER=gen10heur14
     export POKER44_MODEL_REPO_URL=$MANIFEST_REPO_URL
-    export POKER44_MODEL_REPO_COMMIT=$MANIFEST_REPO_COMMIT
     echo '[runtime] HOTKEY_ID=$I'
     echo '[runtime] CHUNK_SCORER=gen10heur14'
     echo '[runtime] manifest implementation hash computed in miner'
