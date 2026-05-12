@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
@@ -32,15 +33,32 @@ def _parse_bool(value: str | None, *, default: bool = False) -> bool:
 def _sha256_for_files(paths: Iterable[Path], *, repo_root: Optional[Path] = None) -> str:
     digest = hashlib.sha256()
     resolved_paths = [p.resolve() for p in paths]
+    repo_root_resolved = repo_root.resolve() if repo_root is not None else None
     for path in sorted(resolved_paths, key=lambda p: str(p)):
-        if repo_root is not None:
+        if repo_root_resolved is not None:
             try:
-                path_key = str(path.relative_to(repo_root.resolve()))
+                path_key = str(path.relative_to(repo_root_resolved))
             except ValueError:
                 path_key = str(path)
         else:
             path_key = str(path)
         digest.update(path_key.encode("utf-8"))
+
+        blob_bytes = None
+        if repo_root_resolved is not None:
+            try:
+                path.relative_to(repo_root_resolved)
+                blob_bytes = subprocess.check_output(
+                    ["git", "-C", str(repo_root_resolved), "show", f"HEAD:{path_key}"],
+                    stderr=subprocess.DEVNULL,
+                )
+            except Exception:
+                blob_bytes = None
+
+        if blob_bytes is not None:
+            digest.update(blob_bytes)
+            continue
+
         with path.open("rb") as handle:
             while True:
                 chunk = handle.read(1024 * 1024)
@@ -62,14 +80,6 @@ def build_local_model_manifest(
         implementation_paths,
         repo_root=repo_root,
     )
-    implementation_sha256_override = os.getenv(
-        "POKER44_MODEL_IMPLEMENTATION_SHA256", ""
-    ).strip()
-    implementation_files_override = [
-        item.strip()
-        for item in os.getenv("POKER44_MODEL_IMPLEMENTATION_FILES", "").split(",")
-        if item.strip()
-    ]
     default_values = dict(defaults or {})
 
     manifest: Dict[str, Any] = {
@@ -141,9 +151,8 @@ def build_local_model_manifest(
             "POKER44_MODEL_INFERENCE_MODE",
             str(default_values.get("inference_mode", "remote")),
         ).strip(),
-        "implementation_sha256": implementation_sha256_override or implementation_sha256,
-        "implementation_files": implementation_files_override
-        or [
+        "implementation_sha256": implementation_sha256,
+        "implementation_files": [
             str(path.relative_to(repo_root)) if path.is_relative_to(repo_root) else str(path)
             for path in implementation_paths
         ],
